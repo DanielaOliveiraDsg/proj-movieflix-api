@@ -79,6 +79,28 @@ app.put("/movies/:id", async (req, res) => {
   res.status(201).send();
 });
 
+// deleting a record
+app.delete("/movies/:id", async (req , res)=>{
+  //get the register id to be updated
+  const id = Number(req.params.id)
+
+  try {
+    const movie = await prisma.movie.findUnique({
+      where: {id}
+    })
+
+    if (!movie) {
+      return res.status(404).send({ message: "Movie record doesn't exist" });
+    }
+    await prisma.movie.delete({
+      where: {id}
+    });
+  } catch (error) {
+    return res.status(500).send({ message: "Fail to delete movie" });
+  }
+  res.status(201).send();
+})
+
 app.listen(port, () => {
   console.log(`Servidor em execução em http://localhost:${port}`);
 });
