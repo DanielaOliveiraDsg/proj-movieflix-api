@@ -20,34 +20,61 @@ app.get("/movies", async (_, res) => {
   res.json(movies);
 });
 
+//create a new record
 app.post("/movies", async (req, res) => {
-
-  const { title, genre_id, language_id, oscar_count, release_date} = req.body;
+  const { title, genre_id, language_id, oscar_count, release_date } = req.body;
 
   try {
     // check if movie title already exists
 
     const movieExist = await prisma.movie.findFirst({
       where: {
-        title: {equals: title, mode: "insensitive"}
-      }
-    })
+        title: { equals: title, mode: "insensitive" },
+      },
+    });
 
     if (movieExist) {
-      return res.status(409).send({message: "Movie already registered"})
+      return res.status(409).send({ message: "Movie already registered" });
     }
 
     await prisma.movie.create({
-    data: {
-      title,
-      genre_id,
-      language_id,
-      oscar_count,
-      release_date: new Date(release_date),
-    },
-  });
+      data: {
+        title,
+        genre_id,
+        language_id,
+        oscar_count,
+        release_date: new Date(release_date),
+      },
+    });
   } catch (error) {
-    return res.status(500).send({message: "Fail to register movie"})
+    return res.status(500).send({ message: "Fail to register movie" });
+  }
+  res.status(201).send();
+});
+
+//updating a record
+app.put("/movies/:id", async (req, res) => {
+  //get the register id to be updated
+  const id = Number(req.params.id)
+
+  //get record data to be updated and update in Prisma
+  const data = {...req.body}
+  data.release_date = data.release_date ? new Date(data.release_date) : undefined
+
+  try {
+    const movie = await prisma.movie.findUnique({
+      where: {id}
+    })
+
+    if (!movie) {
+      return res.status(404).send({ message: "Movie record doesn't exist" });
+    }
+    await prisma.movie.update({
+      where: {id},
+      data
+    });
+  } catch (error) {
+    return res.status(500).send({ message: "Fail to update movie" });
   }
   res.status(201).send();
 });
