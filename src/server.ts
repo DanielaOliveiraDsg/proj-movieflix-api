@@ -108,7 +108,8 @@ app.post("/movies", async (req, res) => {
   res.status(201).send();
 });
 
-//updating a record
+// ------ PUT ----- updating a record
+//updating a movie
 app.put("/movies/:id", async (req, res) => {
   //get the register id to be updated
   const id = Number(req.params.id);
@@ -136,6 +137,36 @@ app.put("/movies/:id", async (req, res) => {
   }
   res.status(201).send();
 });
+
+// updating a genre
+
+app.put("/genre/:id", async (req, res) => {
+  // get register's id to be updated
+    const id = Number(req.params.id);
+
+    try {
+      // checking if genre id exist and messaging client
+        const genreType = await prisma.genre.findUnique({
+            where: { id },
+        });
+
+        if (!genreType) {
+            return res.status(404).send({ message: "Movie not found" });
+        }
+         // get data object from body
+        const data = { ...req.body }; //spread to get anything from body
+        // get genre data to be updated and update it on prisma
+        await prisma.genre.update({
+            where: { id: id },
+            data: {name: data.name,}
+        });
+
+        return res.status(200).send({message: "Genre updated successfully"});
+
+    } catch (error) {
+      return res.status(500).send({ message: "Fail to update record" });
+    }
+})
 
 // deleting a record
 app.delete("/movies/:id", async (req, res) => {
